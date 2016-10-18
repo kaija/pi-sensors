@@ -1,0 +1,14 @@
+[Unit]
+Description=sensor server service
+After=network.target
+
+[Service]
+User=root
+Group=root
+LimitNOFILE=65536
+ExecStart=/opt/sensor-server/bin/www
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=sensor-server.service

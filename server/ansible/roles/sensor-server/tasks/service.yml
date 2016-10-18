@@ -1,1 +1,3 @@
 ---
+- name: sensor server service
+  service: name=sensor-server state=started

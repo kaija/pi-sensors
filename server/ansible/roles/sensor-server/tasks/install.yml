@@ -32,3 +32,16 @@
       - nodejs
     state: installed
     update_cache: yes
+
+- name: Install source code
+  copy: src=sensor-server dest=/opt
+
+- name: Install npm packages
+  npm: path=/opt/sensor-server
+
+- name: change file mode
+  file: path=/opt/sensor-server/bin/www state=file mode=0755
+
+- name: install 
+  copy: src=etc/systemd/system/sensor-server.service dest=/etc/systemd/system/sensor-server.service
+  notify: restart systemd

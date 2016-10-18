@@ -1,0 +1,13 @@
+- name: create data dir
+  file: >
+    name=/data/influxdb
+    state=directory
+    owner=influxdb
+    group=influxdb
+    mode=0755
+
+- name: install influxdb config
+  template:
+    src={{item}}.j2 dest=/{{item}}
+  with_items:
+  - etc/influxdb/influxdb.conf

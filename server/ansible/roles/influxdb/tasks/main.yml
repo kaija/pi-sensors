@@ -1,0 +1,8 @@
+- include: install.yml
+  tags: ['influxdb', 'influxdb:install']
+
+- include: configure.yml
+  tags: ['influxdb', 'influxdb:configure']
+
+- include: service.yml
+  tags: ['influxdb', 'influxdb:service']

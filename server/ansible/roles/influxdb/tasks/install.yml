@@ -1,0 +1,14 @@
+- name: add influxdb apt key
+  apt_key:
+    url: https://repos.influxdata.com/influxdb.key
+
+- name: add influxdb apt repository
+  apt_repository:
+    repo: deb https://repos.influxdata.com/ubuntu xenial stable
+    update_cache: yes
+
+- name: install influxdb
+  apt:
+    name: influxdb
+    update_cache: yes
+    cache_valid_time: 86400

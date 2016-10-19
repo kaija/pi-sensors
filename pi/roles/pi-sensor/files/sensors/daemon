@@ -2,11 +2,96 @@
 import time
 import dht
 import pms
+import schedule
+import requests
+import re, uuid
+import socket
+import fcntl
+import struct
 
+DEBUG=True
+
+FAIL_COUNT=3
 DHT_PIN=14
+skip_count=0
+temperature=0
+humidity=0
+pm1=0
+pm2_5=0
+pm10=0
+mac=''
+ip=''
+building='b'
+floor='3'
+area='a'
 
-th = dht.DHT(DHT_PIN)
-time.sleep(1)
-res = th.read()
-print "T:" + str(res.temperature)
-print "H:" + str(res.humidity)
+def device_info():
+  global mac
+  global ip
+  global building
+  global floor
+  global area
+  mac=':'.join(re.findall('..', '%012x' % uuid.getnode()))
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  ip=socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', 'enp0s5')
+    )[20:24])
+  building='B'
+  floor='3'
+  area='a'
+
+def reset_device():
+  print "reset device"
+
+def capture_data():
+  global skip_count
+  global FAIL_COUNT
+  global temperature
+  global humidity
+  global pm1
+  global pm2_5
+  global pm10
+  global mac
+  global ip
+  global building
+  global floor
+  global area
+  skip_count=skip_count+1
+  if skip_count==FAIL_COUNT:
+    reset_device()
+  print "capture data"
+  #th = dht.DHT(DHT_PIN)
+  #time.sleep(1)
+  #res = th.read()
+  temperature = 24
+  #res.temperature
+  humidity = 40
+  #res.humidity
+  pm1 = 1
+  pm2_5 = 2.5
+  pm10 = 10
+  if DEBUG:
+    print "Temperature:" + str(temperature)
+    print "Humidity   :" + str(humidity)
+    print "PM1        :" + str(pm1)
+    print "PM2.5      :" + str(pm2_5)
+    print "PM10       :" + str(pm10)
+  payload = {'temperature': temperature, 'humidity': humidity, 'pm1': pm1, 'pm2_5': pm2_5, 'pm10': pm10, 'mac': mac, 'ip':ip, 'building':building, 'floor':floor, 'area': area}
+  r = requests.post("http://localhost/sensors/report", data=payload)
+  print r.status_code
+
+def report_data():
+  global skip_count
+  if skip_count == 0:
+    print "send data to api server"
+
+if __name__ == '__main__':
+  device_info()
+  capture_data()
+  schedule.every(1).minutes.do(capture_data)
+  schedule.every(1).minutes.do(report_data)
+  while 1:
+    schedule.run_pending()
+    time.sleep(1)

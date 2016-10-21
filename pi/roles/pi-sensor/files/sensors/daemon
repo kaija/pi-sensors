@@ -9,6 +9,10 @@ import socket
 import fcntl
 import struct
 
+from raven import Client
+client = Client('')
+
+
 DEBUG=True
 
 FAIL_COUNT=3
@@ -33,11 +37,14 @@ def device_info():
   global area
   mac=':'.join(re.findall('..', '%012x' % uuid.getnode()))
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  ip=socket.inet_ntoa(fcntl.ioctl(
+  try:
+    ip=socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
         0x8915,  # SIOCGIFADDR
-        struct.pack('256s', 'enp0s5')
+        struct.pack('256s', 'eth0')
     )[20:24])
+  except IOError as e:
+    print "Error to get MAC address"
   building='B'
   floor='3'
   area='a'
@@ -78,20 +85,31 @@ def capture_data():
     print "PM1        :" + str(pm1)
     print "PM2.5      :" + str(pm2_5)
     print "PM10       :" + str(pm10)
-  payload = {'temperature': temperature, 'humidity': humidity, 'pm1': pm1, 'pm2_5': pm2_5, 'pm10': pm10, 'mac': mac, 'ip':ip, 'building':building, 'floor':floor, 'area': area}
-  r = requests.post("http://localhost/sensors/report", data=payload)
-  print r.status_code
 
 def report_data():
   global skip_count
-  if skip_count == 0:
-    print "send data to api server"
+  if skip_count > 0:
+    print "Too many error from hardware"
+    reset_device()
+    return
+  print "send data to api server"
+  payload = {'temperature': temperature, 'humidity': humidity, 'pm1': pm1, 'pm2_5': pm2_5, 'pm10': pm10, 'mac': mac, 'ip':ip, 'building':building, 'floor':floor, 'area': area}
+  try:
+    r = requests.post("http://localhost/sensors/report", data=payload)
+    print r.status_code
+  except requests.exceptions.ConnectionError:
+    print "Fail to connect server"
 
 if __name__ == '__main__':
-  device_info()
-  capture_data()
-  schedule.every(1).minutes.do(capture_data)
-  schedule.every(1).minutes.do(report_data)
-  while 1:
-    schedule.run_pending()
-    time.sleep(1)
+  try:
+    device_info()
+    capture_data()
+    schedule.every(1).minutes.do(capture_data)
+    schedule.every(1).minutes.do(report_data)
+    while 1:
+      schedule.run_pending()
+      time.sleep(1)
+  except KeyboardInterrupt:
+    exit
+  except Exception:
+    client.captureException()

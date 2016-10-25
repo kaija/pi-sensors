@@ -2,4 +2,5 @@
 - hosts: all
   roles:
   - role: influxdb
+  - role: grafana
   - role: sensor-server

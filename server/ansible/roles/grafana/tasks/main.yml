@@ -1,0 +1,8 @@
+- include: install.yml
+  tags: ['grafana']
+
+- include: configure.yml
+  tags: ['grafana']
+
+- include: service.yml
+  tags: ['grafana']

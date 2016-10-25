@@ -1,0 +1,23 @@
+- name: install libfontconfig
+  apt:
+    name: libfontconfig
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: check if grafana is installed
+  shell: dpkg -l | grep grafana
+  register: result
+  changed_when: result.rc == 1
+  failed_when: result.rc > 1
+
+- name: download grafana
+  get_url: >
+    url=https://grafanarel.s3.amazonaws.com/builds/grafana_{{grafana_version}}_amd64.deb
+    dest=/opt/grafana_{{grafana_version}}_amd64.deb
+    mode=0644
+  when: result.rc == 1
+
+- name: install grafana
+  apt:
+    deb: /opt/grafana_{{grafana_version}}_amd64.deb
+  when: result.rc == 1

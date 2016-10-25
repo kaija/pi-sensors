@@ -1,0 +1,12 @@
+- name: create dir
+  file: name={{item}} state=directory owner=grafana group=grafana mode=0755
+  with_items:
+  - /data/grafana
+
+- name: install grafana config
+  template:
+    src={{item}}.j2 dest=/{{item}} owner=grafana group=grafana mode=0640
+  with_items:
+  - etc/grafana/grafana.ini
+  notify:
+  - restart grafana-server

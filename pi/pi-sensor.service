@@ -1,0 +1,13 @@
+[Unit]
+Description=pi sensor daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/pi-sensor/daemon &
+ExecReload=/bin/killall daemon ; /usr/local/pi-sensor/daemon &
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=sshd.service

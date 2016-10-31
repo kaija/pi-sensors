@@ -28,5 +28,5 @@ if not area:
 print "area:" + area
 config.set('client', 'area', area)
 
-with open('/etc/pi-sensor.conf', 'wb') as configfile:
+with open('/etc/sensor.ini', 'wb') as configfile:
     config.write(configfile)

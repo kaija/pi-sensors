@@ -1,5 +1,0 @@
----
-#ansible_ssh_user:    pi
-#ansible_ssh_pass:    raspberry
-#ansible_remote_user: pi
-ansible_become:      yes

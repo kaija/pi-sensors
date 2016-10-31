@@ -9,14 +9,16 @@ import socket
 import fcntl
 import struct
 
+from time import sleep
+
 from raven import Client
 client = Client('')
 
 
 DEBUG=True
 
-FAIL_COUNT=3
-DHT_PIN=14
+FAIL_COUNT=10
+DHT_PIN=23
 skip_count=0
 temperature=0
 humidity=0
@@ -28,6 +30,9 @@ ip=''
 building='b'
 floor='3'
 area='a'
+
+th = dht.DHT(DHT_PIN)
+pm = pms.PMS()
 
 def device_info():
   global mac
@@ -50,6 +55,8 @@ def device_info():
   area='a'
 
 def reset_device():
+  global skip_count
+  skip_count = 0
   print "reset device"
 
 def capture_data():
@@ -65,20 +72,30 @@ def capture_data():
   global building
   global floor
   global area
-  skip_count=skip_count+1
-  if skip_count==FAIL_COUNT:
-    reset_device()
-  print "capture data"
-  #th = dht.DHT(DHT_PIN)
-  #time.sleep(1)
-  #res = th.read()
-  temperature = 24
-  #res.temperature
-  humidity = 40
-  #res.humidity
-  pm1 = 1
-  pm2_5 = 2.5
-  pm10 = 10
+  print "capture data pms"
+  for i in range(0, 2, +1):
+    pm1 = -1
+    pm2_5 = -1
+    pm10 = -1
+    pmdata=pm.read()
+    if pmdata:
+      pm1 = pmdata['pm1']
+      pm2_5 = pmdata['pm25']
+      pm10 = pmdata['pm10']
+      break
+    sleep(2)
+
+  print "capture data th"
+  for i in range(0, 2, +1):
+    temperature = -1
+    humidity = -1
+    res = th.read()
+    if res:
+      temperature = res.temperature
+      humidity = res.humidity
+      break
+    sleep(0.5)
+
   if DEBUG:
     print "Temperature:" + str(temperature)
     print "Humidity   :" + str(humidity)
@@ -88,14 +105,10 @@ def capture_data():
 
 def report_data():
   global skip_count
-  if skip_count > 0:
-    print "Too many error from hardware"
-    reset_device()
-    return
-  print "send data to api server"
   payload = {'temperature': temperature, 'humidity': humidity, 'pm1': pm1, 'pm2_5': pm2_5, 'pm10': pm10, 'mac': mac, 'ip':ip, 'building':building, 'floor':floor, 'area': area}
+  print payload
   try:
-    r = requests.post("http://localhost/sensors/report", data=payload)
+    r = requests.post("http://sensor.elasticservice.co/sensors/report", data=payload)
     print r.status_code
   except requests.exceptions.ConnectionError:
     print "Fail to connect server"
@@ -104,6 +117,7 @@ if __name__ == '__main__':
   try:
     device_info()
     capture_data()
+    report_data()
     schedule.every(1).minutes.do(capture_data)
     schedule.every(1).minutes.do(report_data)
     while 1:
@@ -111,5 +125,6 @@ if __name__ == '__main__':
       time.sleep(1)
   except KeyboardInterrupt:
     exit
-  except Exception:
+  except Exception as e:
+    print e
     client.captureException()

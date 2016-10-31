@@ -32,4 +32,5 @@ class DHT:
                 print("Temperature: %d C" % result.temperature)
                 print("Humidity: %d %%" % result.humidity)
         else:
-            raise Exception('dht11 error')
+            return None
+            #raise Exception('dht11 error')

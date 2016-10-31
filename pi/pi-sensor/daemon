@@ -8,11 +8,14 @@ import re, uuid
 import socket
 import fcntl
 import struct
+import configparser
 
 from time import sleep
 
 from raven import Client
-client = Client('')
+config = configparser.ConfigParser()
+config.read('/etc/sensor.ini')
+client = Client(config['server']['DSN'])
 
 
 DEBUG=True
@@ -27,9 +30,9 @@ pm2_5=0
 pm10=0
 mac=''
 ip=''
-building='b'
-floor='3'
-area='a'
+building=config['client']['building']
+floor=config['client']['floor']
+area=config['client']['area']
 
 th = dht.DHT(DHT_PIN)
 pm = pms.PMS()
@@ -106,14 +109,20 @@ def capture_data():
 def report_data():
   global skip_count
   payload = {'temperature': temperature, 'humidity': humidity, 'pm1': pm1, 'pm2_5': pm2_5, 'pm10': pm10, 'mac': mac, 'ip':ip, 'building':building, 'floor':floor, 'area': area}
+  if payload['temperature'] == -1: del payload['temperature']
+  if payload['humidity'] == -1: del payload['humidity']
+  if payload['pm1'] == -1: del payload['pm1']
+  if payload['pm2_5'] == -1: del payload['pm2_5']
+  if payload['pm10'] == -1: del payload['pm10']
   print payload
   try:
-    r = requests.post("http://sensor.elasticservice.co/sensors/report", data=payload)
+    r = requests.post("http://" + config['server']['server']+ "/sensors/report", data=payload)
     print r.status_code
   except requests.exceptions.ConnectionError:
     print "Fail to connect server"
 
 if __name__ == '__main__':
+  sleep(2)
   try:
     device_info()
     capture_data()

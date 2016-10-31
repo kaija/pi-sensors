@@ -10,7 +10,7 @@ class DHT:
         GPIO.setmode(GPIO.BCM)
         GPIO.cleanup()
 
-        self.__inst = dht11.DHT11(pin = 14)
+        self.__inst = dht11.DHT11(pin = pin)
         if self.__debug:
             result = self.__inst.read()
             if result.is_valid():

@@ -9,6 +9,9 @@ import socket
 import fcntl
 import struct
 import configparser
+import logging
+
+logging.basicConfig(filename='/var/log/pi-sensor.log',level=logging.DEBUG)
 
 from time import sleep
 
@@ -37,10 +40,14 @@ area=config['client']['area']
 th = dht.DHT(DHT_PIN)
 pm = pms.PMS()
 
+def getmacaddress(interface):
+  macaddress = open('/sys/class/net/'+interface+'/address').readline()
+  return macaddress[0:17]
+
 def device_info():
   global mac
   global ip
-  mac=':'.join(re.findall('..', '%012x' % uuid.getnode()))
+  mac = getmacaddress('eth0')
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   try:
     ip=socket.inet_ntoa(fcntl.ioctl(
@@ -49,6 +56,7 @@ def device_info():
         struct.pack('256s', 'eth0')
     )[20:24])
   except IOError as e:
+    logging.error('Error to get MAC address')
     print "Error to get MAC address"
 
 def reset_device():

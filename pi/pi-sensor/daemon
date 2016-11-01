@@ -40,9 +40,6 @@ pm = pms.PMS()
 def device_info():
   global mac
   global ip
-  global building
-  global floor
-  global area
   mac=':'.join(re.findall('..', '%012x' % uuid.getnode()))
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   try:
@@ -53,9 +50,6 @@ def device_info():
     )[20:24])
   except IOError as e:
     print "Error to get MAC address"
-  building='B'
-  floor='3'
-  area='a'
 
 def reset_device():
   global skip_count
@@ -63,6 +57,7 @@ def reset_device():
   print "reset device"
 
 def capture_data():
+  device_info()
   global skip_count
   global FAIL_COUNT
   global temperature

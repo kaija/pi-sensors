@@ -4,6 +4,12 @@ config = ConfigParser.RawConfigParser()
 
 config.add_section('server')
 config.add_section('client')
+dsn=raw_input('Please input sentry DSN:( default: n/a)')
+if not dsn:
+    dsn=""
+print "DSN:" + dsn
+config.set('server', 'DSN', dsn)
+
 url=raw_input('Please input server DNS/IP:( default: sensor.elasticservice.co)')
 if not url:
     url="sensor.elasticservice.co"

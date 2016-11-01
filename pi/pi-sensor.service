@@ -3,7 +3,7 @@ Description=pi sensor daemon
 After=network.target
 
 [Service]
-ExecStart=/usr/local/pi-sensor/daemon &
+ExecStart=/usr/local/pi-sensor/daemon
 ExecStop=/bin/kill -SIGTERM $MAINPID
 Restart=always
 

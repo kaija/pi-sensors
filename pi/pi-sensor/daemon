@@ -15,7 +15,7 @@ from time import sleep
 from raven import Client
 config = configparser.ConfigParser()
 config.read('/etc/sensor.ini')
-client = Client(config['server']['DSN'])
+client = Client(config['server']['dsn'])
 
 
 DEBUG=True

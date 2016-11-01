@@ -4,10 +4,9 @@ After=network.target
 
 [Service]
 ExecStart=/usr/local/pi-sensor/daemon &
-ExecReload=/bin/killall daemon ; /usr/local/pi-sensor/daemon &
-KillMode=process
-Restart=on-failure
+ExecStop=/bin/kill -SIGTERM $MAINPID
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
-Alias=sshd.service
+Alias=pi-sensor.service

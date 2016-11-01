@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Install Raspberry Pi package"
-apt-get install -y upstart
+#apt-get install -y upstart
 pip install requests raven configparser
 echo "Install sensor source code"
 cp -rf pi-sensor /usr/local/

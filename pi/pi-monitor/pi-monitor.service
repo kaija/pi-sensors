@@ -1,0 +1,12 @@
+[Unit]
+Description=pi sensor monitor daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/pi-monitor
+ExecStop=/bin/kill -SIGTERM $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=pi-monitor.service
